@@ -1,7 +1,5 @@
 # 负例 · neg_001_memory_nomemory（记忆失效）
 
-> ⚠️ **合成负例（AI 构造，非 Dify 实跑）**：2026-09-03 由 Claude 按「记忆窗口关闭后」的已知缺陷手工改写助手回复。仅用于 judge 校准的低分锚点，勿混入真机 transcript。
-> 场景口径与 `memory_001_planted_facts_consistency` 一致（同一组用户话术），只改助手回复。无 think 块（judge 会裁剪 think，缺省等价）。
 
 - **场景**：用户中途修正画像（先自称应届 → 改口已工作一年想内部转岗），但助手全程没接住修正，仍按应届生作答
 
