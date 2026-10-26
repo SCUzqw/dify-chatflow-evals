@@ -1,7 +1,7 @@
 # LLM-judge 校准验收记录
 
-- **日期**：2026-09-03
-- **状态**：✅ 第 3 步收口（46/47）→ ✅ 第 4 步收口（75/77）
+- **日期**：2026-09
+- **状态**：完成第 4 步收口（75/77）
 - **对拍命令**：`python run_calibration.py`（默认 `--repeat 3` 多数投票）
 - **金标**：`judge/gold.json`（v0.4.3，11 场景 × 77 行，多数票对拍定稿：75/77 = 97.4%）
 - **judge 后端**：Dify 独立 Workflow（deepseek-v4-flash，温度 0），系统 Prompt 规则 1–7 见 `BUILD_DIFY_JUDGE.md`
