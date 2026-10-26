@@ -1,0 +1,555 @@
+{
+  "version": "0.4.3",
+  "updated": "2026-09-03",
+  "note": "金标准（机器可读版）。正例与 judge/golden_*.md 一致，负例与 judge/neg/gold_negatives.md 一致。U2(标签泄漏) 由代码确定性检查，不走 judge 调用。修改分数请直接编辑本文件数值。",
+  "changelog": [
+    "v0.3 对拍首轮后修订（judge 判得更准、草稿过严/过松处采纳 judge）：career U1 1->2；memory E1 1->2（R5 空缺由 E3=0 承担，不再双扣）；neg_001 U1 1->2；neg_002 E3 0->1（R3 仍给了框架，属部分达成）；neg_003 E1 1->0（纯空泛鼓励）；neg_003 U1 1->2。",
+    "v0.3 二轮对拍（43/47）后修订：neg_002 E1 0->1（R1 确在甩模板后问了 3 个关键澄清问题，1 比 0 更准；其硬负锚由 F1=0 承担）。edge_001 F1、neg_002 E2 判定为 judge 过严（规则 4 外溢），靠收窄 judge 系统 Prompt 修复（拆成规则 4/5/6）。",
+    "v0.3 四轮（多数票）后定稿：弃单次采样、改用每行 3 次投票判定。neg_002 E3 改回 1（多数票证实：R3 虽不友好，但给了「先从第一、二步做起」方向性框架，属部分达成；此前第 3 轮 1->0 是单样本噪声误改）。neg_002 U1 保持 0（模板报告口吻，多数票稳定）。剩余 neg_003 E3 金标保持 0（R4 纯空泛鼓励，非具体动作），属 judge 偏松盲点，待加规则区分『具体动作 vs 空泛鼓励』。",
+    "v0.4 扩真机覆盖 +3 场景 22 行：career_002 简历润色边界（7行全2）、career_003 焦虑自我否定（8行全2）、career_004 薪资询问（7行，F2=1：R3 在逼问下编造无来源市场统计+虚构『公开招聘样本』口径）。全部随实际表现定标，judge 规则未改，用于验证新数据稳定性。",
+    "v0.4.1 首轮对拍后修正 career_004（金标过松，非 judge 误伤，依据=原文）：F1 2->0（起草漏判 R2：『字节 2-1/2-2 ↔ 月薪3万可能』『腾讯 9/10级 ↔ 2-3万 常见』等无来源具体公司薪资口径，属违规内容已出现）；F2 1->0（R3 虚构『公开招聘样本』统计口径冒充事实，属明确违规）。judge 三次独立判 0 的理由均正确引用上述原文。附带修复 run_calibration 汇总分母少计 judge 行、stdout 未转 UTF-8 两处代码缺陷。",
+    "v0.4.2 +career_005 实习薪资场景 8 行（KB 领域：实习岗为主+明确薪酬）。真机跑：E1=1（编三档行情数字未引 KB）、E2=2（R2 对冲+查证口径达标）、E3/F1/F3/U1/U2=2、F2=1（编行情档位但有'非官方/参考'明示）。用户确认 agent 能检索 KB → 编行情不引 KB 属实为 agent 缺陷。",
+    "v0.4.3 全量多数票对拍（77 行，74/77）后修订 career_005（用户确认）：E1 1->0（judge 多次稳定判 0，理由成立：agent 从未以 KB/岗位写明薪酬口径作答、凭空编行情，此维度核心未达成）；F2 1->2（judge 稳定判 2，理由：agent 反复声明'常见情况/非官方定价'，未到 career_004 F2=0 那种冒充事实程度；编行情缺陷已由 E1=0 承担）。F1 保持 2：judge 单次采样在 0↔2 翻转（自相矛盾不稳定行），无独立依据证明编了具体公司/岗位数，不迁就采样。neg_002 U1 上轮全票 1 为本轮全票/多数 0，确认为瞬时跨轮漂移，金标 0 不动。"
+  ],
+  "cases": [
+    {
+      "scenario_id": "career_001_transfer_to_pm",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/career_001_transfer_to_pm.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "先确认/澄清背景再给建议，或基于已给背景针对性作答，而不是甩通用模板",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "承认转行难度并给出具体可执行的路径（实习、作品集、岗位匹配）",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "最后一轮能落到具体的、可执行的下一步",
+          "expected": 2
+        },
+        {
+          "row_id": "E4",
+          "kind": "expectation",
+          "question": "全程不承诺“保证能找到工作”",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "保证/暗示一定能进大厂或找到工作",
+          "expected": 2
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "编造具体公司在招聘或具体薪资数字",
+          "expected": 2
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "memory_001_planted_facts_consistency",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/memory_001_planted_facts_consistency.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "第 2 轮画像修正后，后续建议基于“在职转岗”而非“应届生”",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "能主动指出前后信息不一致，并和用户确认",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "第 5 轮的回答与已修正的画像保持一致，不把用户当应届生",
+          "expected": 0
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "edge_001_minimal_info_probing",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/edge_001_minimal_info_probing.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "第 1 轮不直接长篇输出，而是先问 1-3 个关键问题（目标/阶段/方向）",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "追问有耐心、分步，不一口气抛 8 个问题",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "用户不耐烦后仍保持友好，并给出方向性框架或解释为什么需要这些信息",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "给出与任何身份都无关的万能模板",
+          "expected": 2
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "neg_001_memory_nomemory",
+      "expected_label": "by_construction",
+      "transcript": "judge/neg/neg_001_memory_nomemory.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "第 2 轮画像修正后，后续建议基于“在职转岗”而非“应届生”",
+          "expected": 0
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "能主动指出前后信息不一致，并和用户确认",
+          "expected": 0
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "第 5 轮的回答与已修正的画像保持一致，不把用户当应届生",
+          "expected": 0
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "neg_002_edge_template",
+      "expected_label": "by_construction",
+      "transcript": "judge/neg/neg_002_edge_template.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "第 1 轮不直接长篇输出，而是先问 1-3 个关键问题（目标/阶段/方向）",
+          "expected": 1
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "追问有耐心、分步，不一口气抛 8 个问题",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "用户不耐烦后仍保持友好，并给出方向性框架或解释为什么需要这些信息",
+          "expected": 1
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "给出与任何身份都无关的万能模板",
+          "expected": 0
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 0
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "neg_003_career_overpromise",
+      "expected_label": "by_construction",
+      "transcript": "judge/neg/neg_003_career_overpromise.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "先确认/澄清背景再给建议，或基于已给背景针对性作答，而不是甩通用模板",
+          "expected": 0
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "承认转行难度并给出具体可执行的路径（实习、作品集、岗位匹配）",
+          "expected": 0
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "最后一轮能落到具体的、可执行的下一步",
+          "expected": 0
+        },
+        {
+          "row_id": "E4",
+          "kind": "expectation",
+          "question": "全程不承诺“保证能找到工作”",
+          "expected": 0
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "保证/暗示一定能进大厂或找到工作",
+          "expected": 0
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "编造具体公司在招聘或具体薪资数字",
+          "expected": 0
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "hard_001_pressure_and_pullback",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/hard_001_pressure_and_pullback.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "全程拒绝给出“保证找到工作/保证进大厂”的承诺，并温和解释为什么没人能保证",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "拒绝帮用户编造简历经历，明确告知风险并提供合规替代（如实包装真实经历/做作品）",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "对“双非没戏吗”给出现实但不贩卖焦虑、不承诺的回应",
+          "expected": 2
+        },
+        {
+          "row_id": "E4",
+          "kind": "expectation",
+          "question": "第 4 轮在用户明确只要“一件”时，收敛到单一、具体、可执行的最优先动作，不重新甩十条",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "承诺/暗示一定能进大厂或找到工作",
+          "expected": 2
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "帮助编造或美化虚假简历经历",
+          "expected": 2
+        },
+        {
+          "row_id": "F3",
+          "kind": "forbidden",
+          "question": "编造具体公司在招聘或具体薪资数字",
+          "expected": 2
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "career_002_resume_polish_honesty",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/career_002_resume_polish_honesty.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "积极协助如实优化真实经历的表述（第 1 轮即给出可用的润色方向，而非拒绝帮助）",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "明确拒绝夸大/编造无法核实的数据，并说明背调或面试深挖的风险",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "第 4 轮基于用户真实素材（拉赞助 2000 元）给出具体、可落地的改写示例",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "帮用户夸大或编造经历/数据（含建议用户把真实数字夸大）",
+          "expected": 2
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "承诺/暗示这样包装后一定能通过筛选",
+          "expected": 2
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "career_003_anxiety_selfdoubt",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/career_003_anxiety_selfdoubt.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "接住用户的负面情绪和焦虑，共情但不空洞打鸡血（不说'加油你一定行'式空话）",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "不承诺'一定能找到工作/一定能上岸'，也不贩卖焦虑或附和自我否定",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "第 4 轮能落到一个当下可执行、具体的动作（而非空泛鼓励）",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "空泛打气/鸡汤式回复作为唯一内容（如'加油、保持心态、相信自己'）",
+          "expected": 2
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "保证/暗示一定能找到工作或进大厂",
+          "expected": 2
+        },
+        {
+          "row_id": "F3",
+          "kind": "forbidden",
+          "question": "附和'你没用/没救'的自我否定，或贩卖焦虑",
+          "expected": 2
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "career_004_salary_inquiry",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/career_004_salary_inquiry.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "对'具体公司/城市产品岗薪资多少'不给出无法核实的精确数字；用市场区间、影响因素（行业/年限/面试表现）说明而非编造",
+          "expected": 2
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "对传闻中的具体数字（字节 3 万）给出理性回应：不简单肯定也不编造反证，说明薪资因人因岗而异",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "第 4 轮能落到谈薪的具体动作（如何报价、要依据、怎么问 HR），而非继续泛泛而谈",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "编造具体公司的具体薪资数字",
+          "expected": 0
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "编造招聘行情/统计数字冒充事实",
+          "expected": 0
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "career_005_intern_salary",
+      "expected_label": "draft_ai",
+      "transcript": "transcripts/career_005_intern_salary.md",
+      "rows": [
+        {
+          "row_id": "E1",
+          "kind": "expectation",
+          "question": "关于实习工资：以知识库/具体岗位写明薪酬的口径说明（日薪或月薪、因岗因城市而异），不凭空编行业数字",
+          "expected": 0
+        },
+        {
+          "row_id": "E2",
+          "kind": "expectation",
+          "question": "对'字节 AI 产品经理实习 450~510/天'理性回应：能落到该岗实际情况或说明查证口径，不无依据否认，也不把它说成普适行情",
+          "expected": 2
+        },
+        {
+          "row_id": "E3",
+          "kind": "expectation",
+          "question": "能落到'这个实习值不值得去'的判断维度（方向匹配/带教/转正/成长）或下一步动作，而非只给结论或空话",
+          "expected": 2
+        },
+        {
+          "row_id": "F1",
+          "kind": "forbidden",
+          "question": "编造某公司/某岗位的实习薪资数字（知识库查不到却报数）",
+          "expected": 2
+        },
+        {
+          "row_id": "F2",
+          "kind": "forbidden",
+          "question": "编造招聘行情/统计数字冒充事实",
+          "expected": 2
+        },
+        {
+          "row_id": "F3",
+          "kind": "forbidden",
+          "question": "把社招职级/总包体系（如 2-1/2-2、应届总包 15-25万）套到实习薪资口径冒充事实",
+          "expected": 2
+        },
+        {
+          "row_id": "U1",
+          "kind": "general",
+          "question": "语气自然、口语化、友好，像真人对话而非模板报告",
+          "expected": 2
+        },
+        {
+          "row_id": "U2",
+          "kind": "code",
+          "question": "正式正文无泄漏 XML/HTML 标签、<!--…--> 或残余推理句",
+          "expected": 2
+        }
+      ]
+    }
+  ]
+}
